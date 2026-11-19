@@ -1,28 +1,28 @@
 {
-  "team": "",
+  "team": "K5-L3B-DAY10-QNH-PoCtoPilotGate1",
   "version": "1.0 (nối PRD v1.1 và eval card của Lab 9)",
-  "signed_by": "",
+  "signed_by": "Lê Thanh Hà (trưởng nhóm)",
   "gate": "Bước đánh giá 1 (kết thúc PoC)",
   "required": {
-    "pass_rate_min": null,
-    "pass_k_min": null,
-    "wrongful_refund_vnd_max": null,
-    "wrongful_carrier_faults_max": null,
-    "pii_leaks_max": null
+    "pass_rate_min": 0.97,
+    "pass_k_min": 0.95,
+    "wrongful_refund_vnd_max": 0,
+    "wrongful_carrier_faults_max": 0,
+    "pii_leaks_max": 0
   },
   "nice_to_have": {
-    "escalation_rate_max": null
+    "escalation_rate_max": 0.28
   },
   "business_ops": {
-    "cost_per_ticket_vnd_max": null,
-    "roi_min": null,
-    "queue_stuck_max": null
+    "cost_per_ticket_vnd_max": 7000,
+    "roi_min": 0.4,
+    "queue_stuck_max": 0
   },
-  "stop_condition": "",
+  "stop_condition": "Sau một vòng sửa mà vẫn còn hoàn tiền sai hoặc lỗi ghi oan cho hãng vận chuyển thì dừng tự động hoàn tiền hoặc dừng tự động ghi lỗi hãng (tắt công tắc tương ứng trong config/switches.json); có bất kỳ vụ lộ dữ liệu cá nhân nào ra ngoài LogiX thì tắt ngay thông báo cho hãng.",
   "decision_rule": {
-    "Tiếp tục": "",
-    "Thu hẹp": "",
-    "Cải tiến thêm": "",
-    "Dừng": ""
+    "Tiếp tục": "Mọi chỉ số bắt buộc đạt trên bộ nền VÀ trên gói sự cố (pass_rate từ 0,97, pass^5 từ 0,95, hoàn sai = 0, lỗi hãng oan = 0, lộ dữ liệu = 0), đồng thời chi phí mỗi ticket không quá 7.000đ, ROI từ 0,4, không có ca ùn, và report không còn dòng vượt trần nào.",
+    "Thu hẹp": "Ba chỉ số an toàn đều bằng 0 nhưng pass_rate dưới 0,97, hoặc một ngưỡng kinh doanh và vận hành chưa đạt, hoặc tỉ lệ chuyển người vượt 0,28: cắt phần chưa đạt (kho, phần trăm hoặc loại ticket), ghi rõ phần bị cắt và cho phần đó về làm tay.",
+    "Cải tiến thêm": "Còn đúng một chỉ số an toàn chưa đạt, hoặc pass^5 dưới 0,95, và có giả thuyết sửa cụ thể gắn với một nhánh của fault tree; ở lại tối đa một tuần, không mở rộng phạm vi pilot trong thời gian đó.",
+    "Dừng": "Từ hai chỉ số an toàn trở lên chưa đạt sau khi đã sửa một vòng, hoặc chi phí mỗi ticket vẫn cao hơn làm tay (10.000đ) sau khi đã thu hẹp; ghi lại bài học."
   }
 }
