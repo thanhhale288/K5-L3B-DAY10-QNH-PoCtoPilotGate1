@@ -15,7 +15,9 @@
     "stop_conditions": [
       "Khi có 1 lỗi ghi oan cho hãng vận chuyển thì NV-TUNG tắt file_carrier_fault",
       "Khi tổng hoàn tự động trong ngày chạm 80% trần ngày thì báo NV-HANH; chạm trần thì issue_refund chuyển hết sang người duyệt",
-      "Khi có bất kỳ ca nào chờ người duyệt quá 45 phút hoặc có ca bị ùn thì gọi thêm người trực; không đỡ trong 30 phút thì NV-TUNG thu hẹp phạm vi pilot"
+      "Khi có bất kỳ ca nào chờ người duyệt quá 45 phút hoặc có ca bị ùn thì gọi thêm người trực; không đỡ trong 30 phút thì NV-TUNG thu hẹp phạm vi pilot",
+      "Khi có tiền hoàn sai từ 1đ thì NV-TUNG tắt issue_refund, NV-OANH đối soát sổ cái",
+      "Khi có 1 vụ lộ dữ liệu cá nhân ra bên thứ ba thì NV-TUNG tắt notify_carrier ngay, NV-OANH liên hệ hãng"
     ],
     "alert_channel": "Nhóm chat vận hành LogiX Refund Ops (NV-TUNG, NV-HANH, NV-OANH)",
     "decision_note": true,

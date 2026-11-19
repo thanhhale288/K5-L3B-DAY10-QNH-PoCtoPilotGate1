@@ -402,9 +402,9 @@ Ghi các dòng đổi sau sự cố. Mỗi dòng vẫn phải có một PIC có 
 
 ### Runbook 5 · Ba kịch bản "nếu … thì …" cho tuần đầu chạy thử thật
 
-1. Nếu số ticket tăng gấp ___ lần trong một giờ thì: …
-2. Nếu nhà cung cấp LLM lỗi quá ___ phút thì: …
-3. Nếu người duyệt báo không tin một quyết định của trợ lý thì: …
+1. Nếu số ticket tăng gấp **3** lần trong một giờ thì: hai người trực (`reviewers_on_shift` = 2, 12 ca/giờ) vẫn giữ nguyên; khi hàng chờ từ 6 ca hoặc ca chờ lâu nhất quá 20 phút thì NV-TUNG gọi thêm người thứ 3 (khoảng +30.000đ/ca, chỉ gọi trong ngày cao điểm để chi phí mỗi ticket không vượt 7.000đ). Có ca chờ quá 45 phút (`max_queue_wait_minutes`) hoặc có ca ùn mà 30 phút sau vẫn không đỡ thì NV-TUNG thu hẹp `business.pilot_scope` về `percent` 50; vẫn đỏ thì tắt `issue_refund` (mọi ca sang người). Báo vào nhóm chat LogiX Refund Ops, khớp `operations.stop_conditions` mục 3 và Phiếu B mục B7.6.
+2. Nếu nhà cung cấp LLM lỗi quá **15** phút thì: NV-TUNG đặt `issue_refund` và `file_carrier_fault` về `"off"` trong `config/switches.json`, mọi ticket vào hàng chờ của NV-HANH xử lý tay (ngày thường khoảng 2,75 ticket/giờ, hai người duyệt 12 ca/giờ nên đủ, vẫn trong hạn 60 phút). Lỗi 429 xảy ra sau khi đã ghi thì cổng ghi từ chối hoàn lần hai khi sổ cái đã có dòng hoàn cho đơn đó; cuối ngày NV-OANH đối soát sổ cái tìm hoàn trùng. Bật lại khi LLM ổn định 30 phút và chạy lại `lab10.eval` đạt mọi ngưỡng bắt buộc; NV-HANH ký, NV-TUNG bật.
+3. Nếu người duyệt báo không tin một quyết định của trợ lý thì: người duyệt ghi mã ticket vào nhóm chat; NV-HANH đọc ghi chú giải thích (`decision_note`) và trace của ticket đó trong 60 phút. Trong lúc chờ, tăng `operations.review_sampling_pct` từ 10 lên 30 cho cùng loại ticket. Nếu xác nhận trợ lý sai: hoàn sai từ 1đ thì tắt `issue_refund`, lỗi hãng oan thì tắt `file_carrier_fault` (Runbook 3), NV-OANH liên hệ hãng hoặc shop bị ảnh hưởng. Nếu trợ lý đúng: giữ nguyên, ghi lại để giải thích cho người duyệt, và hạ kiểm mẫu về 10% sau 3 ngày không có báo mới.
 
 ---
 

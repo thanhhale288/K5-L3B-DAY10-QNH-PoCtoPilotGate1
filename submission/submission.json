@@ -1,8 +1,8 @@
 {
-  "team": "",
-  "members": [],
+  "team": "K5-L3B-DAY10-QNH-PoCtoPilotGate1",
+  "members": ["LeThanhHa-2A202603901", "LaQuocNghi-2A202603947", "NguyenVanQuoc-2A202603864"],
   "incident": "",
-  "decision_v1": "",
+  "decision_v1": "Tiếp tục",
   "decision_v2": "",
   "three_lines": {
     "environment_assumption": "",

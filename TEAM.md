@@ -68,3 +68,37 @@ Mã commit, mã lần chạy (`runs/<mã>`), dòng trong phiếu.
 ### Exit ticket
 
 Một điều học được, một điều còn chưa chắc.
+
+## LaQuocNghi-2A202603947
+
+### Phần việc phụ trách
+
+Vai **Vận hành và pháp lý**.
+
+- Câu 2.4: Phiếu B mục B4 (HAZOP vòng 1, ba dòng ngoài kỹ thuật: người duyệt, ngân sách, dữ liệu gửi bên thứ ba) và mục B5 (checklist 9 nhóm, PIC các dòng 3, 5, 7, 8).
+- Câu 2.10: `config/operating_gates.json` mục `operations` và `legal`; Phiếu B mục B7.5 (Runbook phần 1–3) và B7.6 (Giờ cao điểm).
+- Câu 3.7: Phiếu C mục C11 (cập nhật checklist, Runbook phần 4–5).
+- `submission/submission.json`.
+
+### Đóng góp cụ thể
+
+- Duyệt bản nháp Runbook 1–3 và Giờ cao điểm, đối chiếu từng con số với `config/operating_gates.json` và `data/world.json`:
+  - Khớp: PIC `NV-TUNG`, người duyệt `NV-HANH`, 2 người trực, 12 ca/giờ, chờ tối đa 45 phút, trần ngày 1.500.000đ và mức báo 80%, phạm vi `all`, hai trường không gửi hãng (`customer_note`, `recipient_contact`).
+  - Tính lại giờ cao điểm: 66 ticket/giờ, khoảng 18 ca chuyển người; tới đều thì ca cuối chờ khoảng 30 phút, dồn một lúc thì khoảng 80 phút; người thứ 3 đưa chi phí lên khoảng 7.240đ/ticket ở ngày 22 ticket.
+  - Phát hiện `operations.stop_conditions` (bản vòng 1) mới có 3 câu, thiếu hai điều kiện dừng mà Runbook 3 và `stop_condition` đã ký có. Ở vòng 2 đã bổ sung câu 4 (hoàn sai từ 1đ thì NV-TUNG tắt `issue_refund`) và câu 5 (lộ dữ liệu cá nhân thì tắt `notify_carrier`); giữ nguyên thứ tự câu 1–3 để chỗ B7.6 trỏ "mục 3" vẫn đúng. Chỉ đổi câu chữ, không đổi con số nào tham gia tính report; bản chụp vòng 1 không đụng tới.
+  - Chỗ còn hở, chuyển sang vòng 2: người trực thứ hai chưa có tên, `NV-HANH` vừa duyệt vừa đứng tên; checklist dòng 5 (tải gấp ba, lỗi 429) còn Chưa, cần vào risk register C10.
+- Viết Runbook 5 (Phiếu C mục C11): ba kịch bản tuần đầu (tải gấp 3, LLM lỗi quá 15 phút, người duyệt không tin trợ lý), số khớp config; đã kiểm `lab10/guards.py` chặn hoàn trùng khi sổ cái đã có khoản hoàn (khớp kịch bản 2).
+- Điền `submission/submission.json`: `team`, `members`, `decision_v1`. Phần `incident`, `decision_v2`, `three_lines` điền sau khi có thẻ và C12.
+- Có dùng trợ lý AI (Claude Code) để rà repo, đối chiếu con số giữa phiếu và config, và soạn nháp Runbook 5; mọi con số đã tự kiểm lại với `data/world.json` và report.
+
+### Bằng chứng
+
+- Commit chốt vòng 1 `9b94892` (mục `operations`, `legal`, B4, B5, B7.5, B7.6); commit ký tiêu chí `36466ce`.
+- Lần chạy: `R-base-after-20261119-162207-5f6460` (số sau khi thêm cổng `operations`), `R-base-prepared-20261119-163940-9e91bf` (mốc prepared).
+- Phiếu B: B4, B5 dòng 3/5/7/8, B7.5, B7.6. Phiếu C: C11 Runbook 5.
+- `config/operating_gates.json` → `operations.stop_conditions` câu 4–5 (vòng 2).
+
+### Exit ticket
+
+- Học được: một con số trong config (số người trực, thời gian chờ tối đa) phải đi kèm một hành động có tên người làm trong runbook, nếu không nó chỉ là con số trên giấy.
+- Chưa chắc: công suất 6 ca/giờ mỗi người và tỉ lệ chuyển người khoảng 0,24 lấy từ dữ liệu giả; giờ cao điểm thật có thể dồn cục hơn giả định "tới đều", khi đó 2 người trực có thể không đủ.
