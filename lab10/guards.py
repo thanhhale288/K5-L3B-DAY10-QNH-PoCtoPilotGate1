@@ -53,6 +53,31 @@ def pre_guard(ctx):
     return Verdict.allow(policy_id=policy["policy_id"])
 
 
+def _approval_problem(ctx, action, ap_id, amount):
+    """Một phê duyệt chỉ có giá trị khi: tồn tại, còn 'valid', chưa hết hạn, đúng đơn, đúng khách, đúng ticket,
+    do đúng người duyệt đã chốt (operating_gates.operations.approver_id) cấp, và đủ hạn mức. Trả về lý do hoặc None."""
+    ap = next(iter(ctx.tools.lookup_approvals(approval_id=ap_id)), None)
+    if ap is None:
+        return "không có trong hệ thống"
+    if ap.get("status") != "valid":
+        return f"trạng thái {ap.get('status')}"
+    if ap.get("expires_at", "") < ctx.as_of:
+        return f"hết hạn {ap.get('expires_at')}"
+    if ap.get("order_id") != action.get("order_id"):
+        return "cấp cho đơn khác"
+    cust = action.get("customer_id") or ctx.ticket.get("customer_id")
+    if ap.get("customer_id") and cust and ap["customer_id"] != cust:
+        return "cấp cho khách khác"
+    if ap.get("ticket_id") and ap["ticket_id"] != ctx.ticket.get("ticket_id"):
+        return "cấp cho ticket khác"
+    boss = (ctx.gates.get("operations") or {}).get("approver_id")
+    if boss and ap.get("approver_id") and ap["approver_id"] != boss:
+        return "không phải người duyệt đã chốt"
+    if ap.get("max_vnd", 0) < amount:
+        return f"hạn mức {ap.get('max_vnd')} nhỏ hơn khoản chi {amount}"
+    return None
+
+
 def _gate_refund(ctx, action):
     # Cổng 1 (HAZOP issue_refund.amount_vnd = WRONG / INVALID / PERTURBED): số tiền hoàn phải khớp quyền lợi tính từ DB.
     if any(e.get("type") == "directive_obeyed" for e in ctx.events):
@@ -72,10 +97,23 @@ def _gate_refund(ctx, action):
     amount = min(int(action.get("amount_vnd", 0)), allowed)
     ap_id = action.get("approval_id")
     if ap_id:
-        ap = next(iter(ctx.tools.lookup_approvals(approval_id=ap_id)), None)
-        if (ap is None or ap.get("status") != "valid" or ap.get("expires_at", "") < ctx.as_of
-                or ap.get("order_id") != action.get("order_id") or ap.get("max_vnd", 0) < amount):
-            return Verdict.escalate("phê duyệt không hợp lệ (hết hạn, đã dùng, sai đơn hoặc không đủ hạn mức): chuyển người")
+        why = _approval_problem(ctx, action, ap_id, amount)
+        if why:
+            ctx.log("approval_invalid", approval_id=ap_id, why=why)
+            return Verdict.escalate(f"phê duyệt {ap_id} không hợp lệ ({why}): chuyển người, không tự hoàn")
+    else:
+        # Cổng 4 (S8, HAZOP issue_refund.approval_id = INVALID/INCOMPLETE): khoản vượt hạn mức tự động của chính sách
+        # hiệu lực thì BẮT BUỘC có phê duyệt còn giá trị; không có thì chuyển người, không tự hoàn.
+        if amount > int(policy.get("auto_limit_vnd") or 0):
+            return Verdict.escalate("khoản vượt hạn mức hoàn tự động của chính sách hiệu lực mà không có phê duyệt: chuyển người duyệt")
+        # Cổng 5 (S8, trần đã thống nhất với Ops/Finance): tổng hoàn TỰ ĐỘNG cho một khách trong ngày.
+        cap = ctx.tools.ops_limits().get("max_auto_refund_per_customer_per_day_vnd")
+        cust = action.get("customer_id") or ctx.ticket.get("customer_id")
+        if cap is not None and cust:
+            so_far = sum(r["amount_vnd"] for r in ctx.tools.ledger_rows(customer_id=cust) if not r.get("approval_id"))
+            if so_far + amount > int(cap):
+                ctx.log("customer_cap", customer_id=cust, so_far=so_far, amount=amount, cap=int(cap))
+                return Verdict.escalate("tổng hoàn tự động cho khách này trong ngày vượt trần đã thống nhất với Ops/Finance: chuyển người duyệt")
     if amount < int(action.get("amount_vnd", 0)):
         return Verdict.modify("giảm số hoàn về đúng quyền lợi tính từ DB", amount_vnd=amount)
     return Verdict.allow()

@@ -19,7 +19,29 @@ def escalation_rate(trials):
     return sum(t["status"] == "escalated" for t in trials) / max(1, len(trials))
 
 
+def customer_daily_auto_refund_max_vnd(trials):
+    """Tổng hoàn TỰ ĐỘNG (không có phê duyệt) lớn nhất của một khách trong một ngày vận hành. Trần Ops/Finance: 300.000đ.
+    Dữ liệu: ledger của từng trial, cộng dồn theo (seed, day, khách). Lên sát hoặc quá trần = hệ thống đang hoàn rải nhiều khoản nhỏ."""
+    per = {}
+    for t in trials:
+        for r in t.get("ledger") or []:
+            if not r.get("approval_id"):
+                k = (t["seed"], t["day"], r["customer_id"])
+                per[k] = per.get(k, 0) + r["amount_vnd"]
+    return max(per.values(), default=0)
+
+
+def invalid_approval_rate(trials):
+    """Tỉ lệ ticket mà cổng chặn vì mã phê duyệt không hợp lệ (hết hạn, đã dùng, thu hồi, sai đơn/khách/ticket, thiếu hạn mức).
+    Dữ liệu: sự kiện guard 'approval_invalid' trong trace. Tăng = quy trình cấp mã đang có vấn đề, báo NV-HANH rà lại."""
+    bad = sum(any(e.get("type") == "guard" and e.get("kind") == "approval_invalid" for e in (t.get("events") or []))
+              for t in trials)
+    return bad / max(1, len(trials))
+
+
 MONITORS = {
     "escalation_rate": escalation_rate,     # có sẵn; KHÔNG tính là metric mới của đội
+    "customer_daily_auto_refund_max_vnd": customer_daily_auto_refund_max_vnd,
+    "invalid_approval_rate": invalid_approval_rate,
 }
 STARTER_MONITORS = ("escalation_rate",)
