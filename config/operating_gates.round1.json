@@ -1,0 +1,28 @@
+{
+  "_huong_dan": "Cổng kinh doanh, vận hành, pháp lý mà trợ lý PHẢI tuân theo. Bàn điền ở vòng 1, chốt bằng python3 -m lab10.checkpoint, rồi được sửa tiếp ở vòng 2. null = chưa đặt cổng này. Giải thích từng dòng: docs/guide.md, mục Cổng trong config (#ban-do).",
+  "business": {
+    "daily_refund_cap_vnd": 1500000,
+    "cost_budget_per_ticket_vnd": 1000,
+    "pilot_scope": {"mode": "all", "warehouses": [], "percent": 100},
+    "roi_min": 0.4
+  },
+  "operations": {
+    "pic": "NV-TUNG",
+    "approver_id": "NV-HANH",
+    "reviewers_on_shift": 2,
+    "review_capacity_per_hour": 12,
+    "max_queue_wait_minutes": 45,
+    "stop_conditions": [
+      "Khi có 1 lỗi ghi oan cho hãng vận chuyển thì NV-TUNG tắt file_carrier_fault",
+      "Khi tổng hoàn tự động trong ngày chạm 80% trần ngày thì báo NV-HANH; chạm trần thì issue_refund chuyển hết sang người duyệt",
+      "Khi có bất kỳ ca nào chờ người duyệt quá 45 phút hoặc có ca bị ùn thì gọi thêm người trực; không đỡ trong 30 phút thì NV-TUNG thu hẹp phạm vi pilot"
+    ],
+    "alert_channel": "Nhóm chat vận hành LogiX Refund Ops (NV-TUNG, NV-HANH, NV-OANH)",
+    "decision_note": true,
+    "review_sampling_pct": 10
+  },
+  "legal": {
+    "pii_fields_blocked_to_third_party": ["customer_note", "recipient_contact"],
+    "carrier_fault_requires_recorded_cause": true
+  }
+}

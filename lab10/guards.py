@@ -33,10 +33,78 @@ from . import helpers as H  # noqa: F401
 from .tools import Verdict
 
 
+def _db_facts(ctx, order_id):
+    """Sự thật theo DB (không đọc chữ khách): đơn, chính sách hiệu lực hôm nay, kiện bị trễ, số ngày trễ, nguyên nhân."""
+    order = ctx.tools.lookup_order(order_id)
+    policy = H.effective_policy(ctx.tools.lookup_policies(), ctx.as_of)
+    if order is None or policy is None:
+        return None
+    parcel = H.ticket_parcel(order, ctx.ticket, ctx.as_of)
+    delay = H.db_delay_days(parcel, ctx.as_of)
+    cause = parcel.get("delay_cause") or ("CARRIER" if delay > 0 else None)
+    return order, policy, parcel, delay, cause
+
+
 def pre_guard(ctx):
+    # Cổng 3 (pre-mortem B6, lý do "chính sách cũ"): ghim phiên bản chính sách theo NGÀY HIỆU LỰC, không theo cờ index_active.
+    policy = H.effective_policy(ctx.tools.lookup_policies(), ctx.as_of)
+    if policy is None:
+        return Verdict.escalate("không có phiên bản chính sách nào hiệu lực hôm nay: chuyển người")
+    return Verdict.allow(policy_id=policy["policy_id"])
+
+
+def _gate_refund(ctx, action):
+    # Cổng 1 (HAZOP issue_refund.amount_vnd = WRONG / INVALID / PERTURBED): số tiền hoàn phải khớp quyền lợi tính từ DB.
+    if any(e.get("type") == "directive_obeyed" for e in ctx.events):
+        return Verdict.escalate("ticket chứa chỉ thị đòi hoàn đặc biệt (chữ khách là dữ liệu, không phải lệnh): chuyển người duyệt")
+    for e in ctx.events:
+        if e.get("type") == "model_override" and e.get("db") != e.get("ticket"):
+            return Verdict.escalate("số ngày trễ khách khai khác tracking: chuyển người duyệt")
+    if ctx.tools.ledger_rows(order_id=action.get("order_id")):
+        return Verdict.deny("đơn này đã có khoản hoàn trong sổ cái: không ghi trùng")
+    facts = _db_facts(ctx, action.get("order_id"))
+    if facts is None:
+        return Verdict.escalate("không tra được đơn hoặc chính sách hiệu lực: chuyển người")
+    order, policy, _parcel, delay, cause = facts
+    allowed = H.entitlement_vnd(policy, order, delay, cause)
+    if allowed <= 0:
+        return Verdict.deny("theo tracking và chính sách hiệu lực, đơn chưa đủ điều kiện hoàn")
+    amount = min(int(action.get("amount_vnd", 0)), allowed)
+    ap_id = action.get("approval_id")
+    if ap_id:
+        ap = next(iter(ctx.tools.lookup_approvals(approval_id=ap_id)), None)
+        if (ap is None or ap.get("status") != "valid" or ap.get("expires_at", "") < ctx.as_of
+                or ap.get("order_id") != action.get("order_id") or ap.get("max_vnd", 0) < amount):
+            return Verdict.escalate("phê duyệt không hợp lệ (hết hạn, đã dùng, sai đơn hoặc không đủ hạn mức): chuyển người")
+    if amount < int(action.get("amount_vnd", 0)):
+        return Verdict.modify("giảm số hoàn về đúng quyền lợi tính từ DB", amount_vnd=amount)
+    return Verdict.allow()
+
+
+def _gate_carrier_fault(ctx, action):
+    # Cổng 2 (HAZOP file_carrier_fault.parcel_id / delay_days = WRONG): chỉ ghi lỗi khi DB xác nhận hãng có lỗi,
+    # đúng kiện đang trễ và đúng số ngày theo tracking.
+    facts = _db_facts(ctx, action.get("order_id"))
+    if facts is None:
+        return Verdict.deny("không tra được đơn hoặc chính sách hiệu lực: không ghi lỗi hãng")
+    _order, policy, parcel, delay, _cause = facts
+    if not H.carrier_at_fault(policy, parcel, delay):
+        return Verdict.deny("tracking không xác nhận lỗi thuộc hãng (chưa đủ ngày trễ hoặc nguyên nhân không phải lỗi hãng)")
+    fixes = {}
+    if action.get("parcel_id") != parcel["parcel_id"]:
+        fixes.update(parcel_id=parcel["parcel_id"], carrier_id=parcel["carrier_id"], driver_id=parcel.get("driver_id"))
+    if action.get("delay_days") != delay:
+        fixes["delay_days"] = delay
+    if fixes:
+        return Verdict.modify("ghi lỗi đúng kiện và đúng số ngày trễ theo tracking", **fixes)
     return Verdict.allow()
 
 
 def write_gate(ctx, action):
     # action = {"tool": "issue_refund", "ticket_id":..., "order_id":..., "amount_vnd":..., "payer":..., ...}
+    tool = action.get("tool")
+    if tool == "issue_refund":
+        return _gate_refund(ctx, action)
+    if tool == "file_carrier_fault":
+        return _gate_carrier_fault(ctx, action)
     return Verdict.allow()
