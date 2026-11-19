@@ -16,7 +16,7 @@ Họ tên đầy đủ và MSSV của **mọi** thành viên; bàn 3 người th
 |   1 | Lê Thanh Hà | 2A202603901 | Kỹ sư cổng | ✓ |
 |   2 | Lã Quốc Nghị | 2A202603947 | Vận hành và pháp lý |             |
 |   3 | Nguyễn Văn Quốc | 2A202603864 | Sản phẩm và kinh doanh |             |
-|   4 |           |      |     |             |
+|   4 | Nguyễn Tấn Dũng | 2A202603734 | Kỹ sư cổng |             |
 
 Ghi `members` trong `submission/submission.json` theo dạng `"HoVaTen-MSSV"`, khớp bảng trên.
 
@@ -117,3 +117,55 @@ Vai **Vận hành và pháp lý**.
 
 - Học được: một con số trong config (số người trực, thời gian chờ tối đa) phải đi kèm một hành động có tên người làm trong runbook, nếu không nó chỉ là con số trên giấy.
 - Chưa chắc: công suất 6 ca/giờ mỗi người và tỉ lệ chuyển người khoảng 0,24 lấy từ dữ liệu giả; giờ cao điểm thật có thể dồn cục hơn giả định "tới đều", khi đó 2 người trực có thể không đủ.
+
+## NguyenTanDung-2A202603734
+
+### Phần việc phụ trách
+
+- **Vai trong bàn:** Kỹ sư cổng (người thứ hai, vai này cho phép 1–2 người). Tôi vào nhóm sau cùng, khi bàn đã chốt vòng 1, xử lý xong thẻ S8 và chạy lệnh 7 lần đầu. Vì vậy tôi không nhận phần vòng 1 và vòng 2 mà các bạn đã ghi ở trên.
+- **Phần tôi nhận:** rà soát chéo bài nộp theo `RUBRIC.md` và checklist trong `SUBMISSION.md`; **kiểm thử độc lập** cổng vòng 2 trong `lab10/guards.py` theo kiểu bài kiểm tra ẩn (đơn khác, khách khác, ngày khác) và **sửa lỗ hổng tìm được** ở cổng trần khách mỗi ngày; chạy lại ba mốc, gom lại bài nộp và cập nhật mã lần chạy trong Phiếu C; giữ bài nộp toàn vẹn khi thêm thành viên thứ tư.
+
+### Đóng góp cụ thể
+
+- **Rà điều kiện qua của bài nộp:**
+  - Đối chiếu quyết định v2 (Phiếu C mục C12, "Tiếp tục") với report tự kiểm tra `R-S8-grade-20261119-173723-96566d`: report ghi "Không vượt trần kinh doanh / vận hành nào", "Mọi ngưỡng đã ký đều đạt", "Được phép cân nhắc 'Tiếp tục'", nên quyết định khớp bằng chứng và khớp `decision_rule` đã ký.
+  - Kiểm "ký trước khi đo" từ `submission/runs/journal.jsonl`: lần đánh giá đầu tiên lúc `16:18:58`, sau lúc ký `16:15:03` (commit `36466ce`).
+  - Phát hiện C12 "Bằng chứng 2" trích `R-base-after-20261119-172707-be2fa1`, lần chạy trước khi `monitors.py` đổi (không khớp code cuối); khi chạy lại sau bản sửa bên dưới, tôi thay bằng lần chạy bộ nền khớp code hiện tại `R-base-after-20261119-221955-eb034e` (số liệu như nhau: 22/22, hoàn sai 0, lỗi hãng oan 0).
+- **Kiểm thử độc lập cổng phê duyệt (thẻ S8) bằng biến thể dữ liệu:** lấy `S8-05` (ca có mã duyệt hợp lệ, nhãn `refunded` 230.000đ) rồi đổi từng trường của mã A-2805, chạy trong bộ nhớ trên cả 5 seed (không ghi vào `runs/`, không làm bẩn nhật ký):
+
+  | Biến thể của mã duyệt | Cổng xử lý | Đúng ý đồ? |
+  |---|---|---|
+  | Giữ nguyên (hợp lệ) | hoàn 230.000đ | Đúng, ca hợp lệ vẫn được phục vụ |
+  | Hết hạn đúng hôm nay (`expires_at` = `as_of`) | hoàn 230.000đ | Đúng, mã còn giá trị hết ngày hôm đó |
+  | Người khác cấp (`approver_id` ≠ NV-HANH) | chuyển người ("không phải người duyệt đã chốt") | Đúng |
+  | Cấp cho khách khác | chuyển người ("cấp cho khách khác") | Đúng |
+  | Đã dùng (`status` = `used`) | chuyển người | Đúng |
+  | Hạn mức thấp hơn khoản chi | chuyển người | Đúng |
+
+  Kết luận: `_approval_problem` tổng quát được ra ngoài 6 mã của thẻ, không phụ thuộc mã ticket.
+- **Phát hiện và sửa một lỗ hổng có thể làm rớt bài kiểm tra ẩn ("ngày khác"):**
+  - *Lỗi:* cổng trần khách mỗi ngày (`_gate_refund`, nhánh không có phê duyệt) cộng `ledger_rows(customer_id=…)`, tức cộng **cả những dòng hoàn của các ngày trước** (`ledger_seed`). Tái hiện: `S8-40` (nhãn `refunded` 86.000đ) chạy một mình thì được hoàn; thêm một dòng hoàn tự động 250.000đ của ngày hôm trước cho cùng khách C-16 thì cổng tính 250.000 + 86.000 > 300.000 và chuyển người, trái với nhãn. Đây là chặn oan khách hợp lệ, đúng kiểu ca mà bài kiểm tra ẩn có thể đưa vào.
+  - *Sửa (code, tầng giới hạn thiệt hại):* thêm hàm `_auto_refund_today_for` trong `lab10/guards.py`, chỉ cộng sổ cái **trong ngày**, đúng chữ "300.000đ/khách/ngày" của `ops_limits`. Chỉ dùng hàm tra cứu công khai: phần của các ngày trước = tổng hoàn tự động cả sổ − `auto_refund_today_vnd()`, bỏ đúng phần đầu sổ có tổng bằng số đó; không khớp được ranh giới thì quay về cách cũ (chặn chặt hơn). Khách lấy theo đơn trong DB (đúng khách mà sổ cái ghi) thay vì theo chữ trong ticket. Không có mã ticket hay câu chữ nào trong code.
+  - *Kiểm sau khi sửa:* trong bộ nhớ, ca lỗi trên nay hoàn đúng 86.000đ; cả chuỗi cùng ngày `S8-40…S8-44` (có và không có 250.000đ của hôm trước) vẫn hoàn 3 ca đầu và chuyển người `S8-43`, `S8-44` đúng nhãn; 6 biến thể mã duyệt ở trên giữ nguyên kết quả; `unittest` 13 test OK.
+  - *Chạy lại thật (đổi MỘT thứ):* `R-S8-after-20261119-221945-eb034e` (gói S8: pass_rate 1,0, hoàn sai 0, lỗi hãng oan 0), `R-base-after-20261119-221955-eb034e` (bộ nền 22/22), grade `R-S8-grade-20261119-221956-eb034e`: `PASS-VISIBLE`, integrity · criteria · visible · regression · monitor đều ✅. So report grade mới với bản trước: giống hệt từng dòng, chỉ khác mã lần chạy, tức bản sửa không làm đổi ca nào đang đúng.
+  - *Cập nhật phiếu cho khớp:* Phiếu C mục C0 (thêm dòng 7 và 8), C7 và C9 nhánh [2] (ghi đã đóng chỗ chặn dư), C12 và `three_lines.reduce_or_prevent` trong `submission.json` (thay mã lần chạy cũ bằng ba mốc mới `…221957-eb034e`); quyết định v2 và mọi con số giữ nguyên.
+- **Kiểm lại một lập luận thiết kế:** bàn bỏ cổng "từ lỗi thứ 3 của một hãng trong ngày thì chuyển người" vì lo làm hỏng bộ nền. Tôi đếm lại: 22 ticket bộ nền là 22 `scenario` khác nhau, mỗi `scenario` chạy trên một thế giới mới (một ngày giả lập riêng); gói S8 chỉ có một ngày nhiều ticket (`S8-LOAT`, 5 ticket của C-16, lỗi ghi cho 3 hãng khác nhau). Ghi lại để nhóm cân nhắc cổng này ở Bước đánh giá 2, khi có dữ liệu nhiều ticket cùng ngày.
+- **Giữ bài nộp toàn vẹn khi thêm thành viên:**
+  - Điền dòng 4 bảng thành viên và thêm `NguyenTanDung-2A202603734` vào `members` (khớp `TEAM.md`, tránh lỗi −5 của rubric).
+  - Phát hiện máy clone mới không có thư mục `runs/` của bàn (bị `.gitignore`): chạy thẳng `grade` rồi `--collect` sẽ ghi đè `submission/runs/journal.jsonl` bằng nhật ký chỉ có vài lần chạy mới (mất bằng chứng "ký trước khi đo"). Tôi khôi phục `runs/` từ `submission/runs/` trước khi chạy, nên nhật ký chỉ được ghi nối (+6 dòng, không dòng cũ nào đổi); lần đánh giá đầu tiên vẫn là `16:18:58`, sau lúc ký `16:15:03`.
+  - Phát hiện git trên Windows (`core.autocrlf=true`) đổi xuống dòng thành CRLF, làm hash code trên máy khác bản trên GitHub (report sẽ bị báo "không chạy trên đúng code"). Tôi đặt repo về LF trước khi chạy để hash trong report khớp bản lên GitHub, chuẩn hoá report mới sinh về LF, và kiểm lại trên một bản clone sạch: lệnh 7 in `ĐỦ THÀNH PHẦN`, `members` 4 người.
+  - Đặt danh tính Git trong repo theo MSSV trưởng nhóm và email giả, đúng README bước 2a và xác nhận của Lab Coach.
+- Có dùng trợ lý AI (Claude Code) để đọc đề và code, viết các script thử trong bộ nhớ và soạn nháp mục này; tôi tự quyết phạm vi việc của mình, đọc lại từng kết quả chạy và chọn những gì báo cho nhóm.
+
+### Bằng chứng
+
+- **Mã commit:** commit sửa cổng trần khách/ngày, cập nhật Phiếu C, gom lại bài nộp và thêm mục này (ngay sau `48cd8fe`).
+- **Mã lần chạy (`runs/`):** sau khi sửa: `R-S8-after-20261119-221945-eb034e`, `R-base-after-20261119-221955-eb034e`; grade `R-S8-grade-20261119-221956-eb034e` với ba mốc base `R-S8-before-20261119-221957-eb034e` · prepared `R-S8-prepared-20261119-221957-eb034e` · after `R-S8-after-20261119-221957-eb034e`. Report đối chiếu trước khi sửa: `R-S8-grade-20261119-173723-96566d`.
+- **Ticket dùng để thử:** `S8-05` (6 biến thể mã A-2805, seed 11–55), `S8-40` và chuỗi `S8-40…S8-44` (có và không có dòng hoàn ngày trước của C-16).
+- **File đã sửa:** `lab10/guards.py` (hàm `_auto_refund_today_for`, nhánh Cổng 5 của `_gate_refund`); `templates/form-c-incident.md` (C0 dòng 7–8, C7 và C9 nhánh [2], mã lần chạy ở C12); `submission/submission.json` (`members`, mã lần chạy trong `three_lines`); `TEAM.md` (dòng 4 và mục này); thư mục `submission/` do lệnh 7 gom lại.
+- **Dòng trong phiếu:** Phiếu C mục C0 (dòng 7, 8), C7 (nhánh [2]), C9 (nhánh [2]), C12 (dòng mã lần chạy, Bằng chứng 1–2, "Chỉ ở v2").
+
+### Exit ticket
+
+- **Điều học được:** Báo cáo xanh trên bộ nhìn thấy chưa nói cổng tổng quát. Phải thử cổng bằng cách đổi **dữ liệu** (ngày, khách, trường của mã duyệt) chứ không chỉ đổi câu chữ, vì bài kiểm tra ẩn đổi đúng những thứ đó. Một chữ trong chính sách như "trong ngày" phải đi thành code đúng ranh giới thời gian, nếu không cổng sẽ chặn oan khách hợp lệ.
+- **Điều còn chưa chắc:** Bài kiểm tra ẩn có ca khách đã được hoàn ở ngày trước hay không, nên chưa biết bản sửa cứu được bao nhiêu điểm; tôi chỉ chắc nó không làm hỏng ca nào đang đúng. Cách tách "hôm nay" dựa vào việc dòng cũ luôn nằm đầu sổ cái; nếu hệ thống thật ghi sổ không theo thứ tự thời gian thì cổng quay về cách cũ (chặn chặt hơn), và khi đó cần một trường ngày trên mỗi dòng sổ cái. Cổng "từ lỗi thứ 3 của một hãng trong ngày" vẫn chưa có vì chưa có ca thử nào có nhãn cho nó.

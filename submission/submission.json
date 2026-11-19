@@ -3,14 +3,15 @@
   "members": [
     "LeThanhHa-2A202603901",
     "LaQuocNghi-2A202603947",
-    "NguyenVanQuoc-2A202603864"
+    "NguyenVanQuoc-2A202603864",
+    "NguyenTanDung-2A202603734"
   ],
   "incident": "S8",
   "decision_v1": "Tiếp tục",
   "decision_v2": "Tiếp tục",
   "three_lines": {
     "environment_assumption": "bảng `approvals` luôn phản ánh đúng việc trưởng ca đã duyệt gì (`status` và `expires_at` cập nhật kịp, chỉ NV-HANH cấp mã); trong dữ liệu thẻ A-2802 hết hạn từ 10/11 mà vẫn ghi `valid`.",
-    "reduce_or_prevent": "NGĂN với mã duyệt không hợp lệ và hoàn vượt trần khách/ngày, vì lệnh ghi bị chuyển người trước khi tiền đi (hoàn sai 6.845.000đ → 0 và 35 lỗi hãng oan → 0 trên gói S8, `R-S8-after-20261119-173724-96566d`); chỉ GIẢM với lòng tin của nhân viên, vì code không ép được họ chuyển sang kiểm mẫu, và phần NGĂN chỉ đúng chừng nào bảng `approvals` đúng.",
+    "reduce_or_prevent": "NGĂN với mã duyệt không hợp lệ và hoàn vượt trần khách/ngày, vì lệnh ghi bị chuyển người trước khi tiền đi (hoàn sai 6.845.000đ → 0 và 35 lỗi hãng oan → 0 trên gói S8, `R-S8-after-20261119-221957-eb034e`); chỉ GIẢM với lòng tin của nhân viên, vì code không ép được họ chuyển sang kiểm mẫu, và phần NGĂN chỉ đúng chừng nào bảng `approvals` đúng.",
     "measure_in_pilot": "tỉ lệ nhân viên thực sự chuyển sang kiểm mẫu 10% và sau bao lâu; tỉ lệ mã duyệt có `status` lệch `expires_at` trong dữ liệu thật; khách nhiều đơn hoặc nhiều tài khoản; công suất duyệt thật mỗi người (giả định 6 ca/giờ); chi phí mỗi ticket với khách và chữ viết thật."
   }
 }

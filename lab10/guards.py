@@ -78,6 +78,21 @@ def _approval_problem(ctx, action, ap_id, amount):
     return None
 
 
+def _auto_refund_today_for(ctx, customer_id):
+    """Tổng hoàn TỰ ĐỘNG (không có phê duyệt) cho một khách, CHỈ trong ngày hôm nay (ops_limits nói "300.000đ/khách/ngày").
+    Sổ cái còn giữ dòng của các ngày trước và các dòng đó luôn nằm đầu sổ. Phần của các ngày trước =
+    tổng hoàn tự động cả sổ − ctx.tools.auto_refund_today_vnd(); bỏ đúng phần đầu sổ có tổng bằng số đó, còn lại là hôm nay.
+    Nếu không khớp được ranh giới thì quay về cách cũ (cộng cả sổ): chặn chặt hơn còn hơn hoàn vượt trần."""
+    auto = [r for r in ctx.tools.ledger_rows() if not r.get("approval_id")]
+    before = sum(r["amount_vnd"] for r in auto) - ctx.tools.auto_refund_today_vnd()
+    acc, i = 0, 0
+    while i < len(auto) and acc < before:
+        acc += auto[i]["amount_vnd"]
+        i += 1
+    today = auto[i:] if acc == before else auto
+    return sum(r["amount_vnd"] for r in today if r.get("customer_id") == customer_id)
+
+
 def _gate_refund(ctx, action):
     # Cổng 1 (HAZOP issue_refund.amount_vnd = WRONG / INVALID / PERTURBED): số tiền hoàn phải khớp quyền lợi tính từ DB.
     if any(e.get("type") == "directive_obeyed" for e in ctx.events):
@@ -107,10 +122,11 @@ def _gate_refund(ctx, action):
         if amount > int(policy.get("auto_limit_vnd") or 0):
             return Verdict.escalate("khoản vượt hạn mức hoàn tự động của chính sách hiệu lực mà không có phê duyệt: chuyển người duyệt")
         # Cổng 5 (S8, trần đã thống nhất với Ops/Finance): tổng hoàn TỰ ĐỘNG cho một khách trong ngày.
+        # Vòng 2 (rà soát): chỉ cộng sổ cái HÔM NAY; khách lấy theo đơn trong DB (đúng khách mà sổ cái ghi).
         cap = ctx.tools.ops_limits().get("max_auto_refund_per_customer_per_day_vnd")
-        cust = action.get("customer_id") or ctx.ticket.get("customer_id")
+        cust = order.get("customer_id") or action.get("customer_id") or ctx.ticket.get("customer_id")
         if cap is not None and cust:
-            so_far = sum(r["amount_vnd"] for r in ctx.tools.ledger_rows(customer_id=cust) if not r.get("approval_id"))
+            so_far = _auto_refund_today_for(ctx, cust)
             if so_far + amount > int(cap):
                 ctx.log("customer_cap", customer_id=cust, so_far=so_far, amount=amount, cap=int(cap))
                 return Verdict.escalate("tổng hoàn tự động cho khách này trong ngày vượt trần đã thống nhất với Ops/Finance: chuyển người duyệt")
