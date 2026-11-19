@@ -2,10 +2,10 @@
 
 *Đây là kết quả TỰ KIỂM TRA của bàn, không phải điểm. Bài được một team chấm tự động chấm lại sau buổi học.*
 
-- Mã lần chạy: `R-S8-grade-20261119-173135-be2fa1` · bàn: `K5-L3B-DAY10-QNH-PoCtoPilotGate1` · grader `lab10-1.0` · 1.056s
-- Ba mốc: base `R-S8-before-20261119-173136-be2fa1` · prepared `R-S8-prepared-20261119-173136-be2fa1` · after `R-S8-after-20261119-173136-be2fa1` (report + trace trong runs/)
+- Mã lần chạy: `R-S8-grade-20261119-173723-96566d` · bàn: `K5-L3B-DAY10-QNH-PoCtoPilotGate1` · grader `lab10-1.0` · 1.295s
+- Ba mốc: base `R-S8-before-20261119-173724-96566d` · prepared `R-S8-prepared-20261119-173724-96566d` · after `R-S8-after-20261119-173724-96566d` (report + trace trong runs/)
 - Mốc prepared (cổng vòng 1): đã chốt `46822947`, còn nguyên
-- Hash code đội (guards + monitors + switches + cổng vận hành): `be2fa1f13095`
+- Hash code đội (guards + monitors + switches + cổng vận hành): `96566db2b602`
 - Hash Bản tiêu chí chấp nhận: `2f2dee28aff6` · đã ký: `2f2dee28aff6` · KHÔNG ĐỔI
 - Thẻ đang kiểm: `S8` · dòng "Thẻ đã bốc" bàn ghi trong phiếu: S8 · khớp
 
@@ -16,7 +16,7 @@
 | 3 visible | ✅ | base có vấn đề: True; after sạch: True; ticket còn hỏng: không; trần còn vượt: không |
 | 4 hidden | — | máy này không có bài kiểm tra ẩn (team chấm sẽ chạy sau buổi học) |
 | 5 regression | ✅ | bộ nền pass_rate 0.9909 → 1.0; ca mới hỏng: không |
-| 6 monitor | ✅ | metric mới: ['customer_daily_auto_refund_max_vnd', 'invalid_approval_rate']; sáng đèn: [('customer_daily_auto_refund_max_vnd', 'before', 155000.0, 498000.0), ('customer_daily_auto_refund_max_vnd', 'after', 155000.0, 282000.0), ('invalid_approval_rate', 'after', 0.0, 0.096154)] |
+| 6 monitor | ✅ | metric mới: ['customer_daily_auto_refund_max_vnd', 'invalid_approval_rate', 'claim_over_db_rate', 'claim_db_mismatch_rate']; sáng đèn: [('customer_daily_auto_refund_max_vnd', 'before', 155000.0, 498000.0), ('customer_daily_auto_refund_max_vnd', 'after', 155000.0, 282000.0), ('invalid_approval_rate', 'after', 0.0, 0.096154), ('claim_over_db_rate', 'before', 0.045455, 0.0), ('claim_over_db_rate', 'after', 0.045455, 0.0), ('claim_db_mismatch_rate', 'before', 0.009091, 0.0), ('claim_db_mismatch_rate', 'after', 0.009091, 0.0)] |
 
 **Kinh doanh · vận hành · pháp lý trên gói sự cố bàn nhìn thấy** (tiền tính cho một ngày giả lập)
 

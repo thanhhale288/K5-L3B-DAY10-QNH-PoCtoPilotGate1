@@ -39,9 +39,29 @@ def invalid_approval_rate(trials):
     return bad / max(1, len(trials))
 
 
+def _override_events(t):
+    return [e for e in (t.get("events") or []) if e.get("type") == "model_override"]
+
+
+def claim_over_db_rate(trials):
+    """Lỗi CHÌM ngoài thẻ: tỉ lệ ticket mà model lấy số ngày trễ KHÁCH KHAI thay vì số ngày theo tracking (sự kiện `model_override`).
+    Kể cả khi hai số tình cờ bằng nhau (ca vẫn "đạt"), hệ thống đã tin lời khách hơn DB: pass/fail theo nhãn không thấy điều này.
+    Dữ liệu: `events` của trial. Cách tính: số trial có `model_override` / số trial. Còn > 0 sau khi có cổng nghĩa là lỗi gốc vẫn còn,
+    cổng chỉ đang che."""
+    return sum(bool(_override_events(t)) for t in trials) / max(1, len(trials))
+
+
+def claim_db_mismatch_rate(trials):
+    """Phần của `claim_over_db_rate` mà số khách khai KHÁC tracking (`db` != `ticket`): đây là ca gây hoàn sai và ghi lỗi oan cho hãng.
+    Cách tính: số trial có `model_override` với db != ticket / số trial."""
+    return sum(any(e.get("db") != e.get("ticket") for e in _override_events(t)) for t in trials) / max(1, len(trials))
+
+
 MONITORS = {
     "escalation_rate": escalation_rate,     # có sẵn; KHÔNG tính là metric mới của đội
     "customer_daily_auto_refund_max_vnd": customer_daily_auto_refund_max_vnd,
     "invalid_approval_rate": invalid_approval_rate,
+    "claim_over_db_rate": claim_over_db_rate,
+    "claim_db_mismatch_rate": claim_db_mismatch_rate,
 }
 STARTER_MONITORS = ("escalation_rate",)

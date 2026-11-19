@@ -1,7 +1,7 @@
 {
-  "run_id": "R-S8-before-20261119-173041-be2fa1",
+  "run_id": "R-S8-before-20261119-173724-96566d",
   "note": "lab10.grade S8: mốc base (chưa có cổng)",
-  "code_hash": "be2fa1f13095215d1ddf8cb4b05e404af1f13d94716da481bd97aa9f28e59c96",
+  "code_hash": "96566db2b602b1bac2f26cfd9fcaf0408c293506e04a5478e2bb37f7d0c160fa",
   "suite": "S8",
   "stage": "before",
   "trials": 260,
@@ -149,7 +149,9 @@
   "monitors": {
     "escalation_rate": 0.0,
     "customer_daily_auto_refund_max_vnd": 498000.0,
-    "invalid_approval_rate": 0.0
+    "invalid_approval_rate": 0.0,
+    "claim_over_db_rate": 0.0,
+    "claim_db_mismatch_rate": 0.0
   },
   "by_segment": {
     "warehouse": [

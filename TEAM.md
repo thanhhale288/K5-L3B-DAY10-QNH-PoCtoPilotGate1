@@ -5,7 +5,7 @@
 - Tên nhóm (`TenNhom`, không dấu, không khoảng trắng): QNH
 - Lớp: `L3B`
 - Repo của bàn: `K5-L3B-DAY10-QNH-PoCtoPilotGate1`
-- Thẻ sự cố đã bốc (S1–S8):
+- Thẻ sự cố đã bốc (S1–S8): S8
 
 ## Thành viên
 
@@ -23,6 +23,39 @@ Ghi `members` trong `submission/submission.json` theo dạng `"HoVaTen-MSSV"`, k
 ## Cá nhân
 
 Mỗi thành viên tự viết một mục bên dưới (chép mẫu, đổi tiêu đề thành họ tên không dấu và MSSV, ví dụ `## NguyenVanAn-20241234`).
+
+## LeThanhHa-2A202603901
+
+### Phần việc phụ trách
+
+- **Vai trong bàn:** Kỹ sư cổng, đồng thời trưởng nhóm. Cả bàn làm trên máy của trưởng nhóm nên mọi commit mang cùng danh tính `2A202603901`; phần việc dưới đây tính theo vai, không theo máy gõ lệnh.
+- **Vòng 1:** câu 2.1 (Phiếu B mục B1, mã lần chạy ở B0), câu 2.2 (B2, bảng soát lỗi `T-002@55`), câu 2.6 (B7.1, cổng trong `lab10/guards.py`), câu 2.7 (B7.2) và 2.8 (B7.3, ba ticket hiểm), chốt cổng vòng 1 bằng `lab10.checkpoint` (B8); PIC các dòng 1 và 4 của checklist (B5). Với vai trưởng nhóm: ký tiêu chí bằng `lab10.criteria sign` và đẩy ngay.
+- **Vòng 2 (thẻ S8):** câu 3.0 (C1, chạy `grade` trước khi sửa), 3.1 (C2, dò trace và bảng soát lỗi), 3.4 (C6 và C9, fault tree), 3.5 (sửa `lab10/guards.py`, C7 phần code), 3.6 (C8 và `lab10/monitors.py`), chạy ba mốc, lệnh 7 (`check_submission --collect`) và rà bài nộp.
+
+### Đóng góp cụ thể
+
+- **Vòng 1:**
+  - Chạy mốc base của bộ nền (`R-base-before-20261119-161858-b45eeb`): hoàn sai 20.000đ và 1 lỗi hãng oan; dò `T-002@55` và điền bảng soát lỗi: model lấy số ngày khách khai (5) đè số theo tracking (2).
+  - Viết ba cổng trong `guards.py` từ dữ kiện DB và chính sách, không có mã ticket trong code: `_gate_refund` (số hoàn khớp quyền lợi tính từ DB, kiểm sổ cái và phê duyệt), `_gate_carrier_fault` (chỉ ghi lỗi hãng khi DB xác nhận, đúng kiện và đúng số ngày), `pre_guard` (ghim chính sách theo ngày hiệu lực thay vì cờ `index_active`). Không viết cổng "tối đa 2 lỗi mỗi hãng mỗi ngày" vì bộ nền có 4 lỗi hợp lệ cùng hãng VNX trong một ngày; cổng đó sẽ làm hỏng ca đang đúng.
+  - Tách tác dụng từng lớp bằng ba lần chạy mỗi lần đổi một thứ: chỉ cổng code (`…162207-2d2862`), thêm cổng pháp lý (`…162207-a3a0ab`), thêm cổng kinh doanh và vận hành (`…162207-5f6460`); viết ba ticket hiểm bằng `--adhoc` (số ngày khách khai, lệnh cài trong ticket, số điện thoại trong ghi chú).
+  - Chốt cổng vòng 1 (hash `46822947`) và chạy mốc prepared (`R-base-prepared-20261119-163940-9e91bf`).
+- **Vòng 2, thẻ S8:**
+  - Chạy `grade` trước khi sửa (mốc prepared `R-S8-prepared-20261119-171557-9e91bf`); dò `S8-02`, `S8-03`, `S8-04` (mã duyệt hết hạn, thiếu hạn mức, cấp cho đơn khác) và `S8-43@11` (hoàn rải cho khách C-16, tổng 498.000đ so với trần 300.000đ).
+  - Sửa `guards.py`: hàm `_approval_problem` (kiểm trạng thái, hạn dùng, đơn, khách, ticket, người cấp, hạn mức), cổng hạn mức tự động, cổng trần khách mỗi ngày đọc từ `ops_limits`. Lần chạy đầu chưa đỡ thêm vì lệnh ghi không mang `customer_id`; lần sau lấy từ `ctx.ticket` thì S8-43 và S8-44 được chuyển người (`R-S8-after-20261119-171844-11cc8d`).
+  - Thêm chỉ số theo dõi trong `monitors.py`: `invalid_approval_rate`, `customer_daily_auto_refund_max_vnd`, và hai chỉ số bắt lỗi chìm ngoài thẻ `claim_over_db_rate`, `claim_db_mismatch_rate` (bằng chứng `T-002@55`, `T-001@55`, `T-015@55`, `T-021@55`, `T-022@55`).
+  - Kết quả bộ S8: hoàn sai 6.845.000đ → 0, lỗi hãng oan 35 → 0, pass_rate 0,8654 → 1,0; bộ nền vẫn 22/22. Lệnh 7 in `ĐỦ THÀNH PHẦN`.
+- Có dùng trợ lý AI (Claude Code) trong gần như toàn bộ các việc trên: đọc đề và gom luật, soạn code cổng và chỉ số, chạy lệnh và soạn nháp các phiếu A, B, C. Tôi chọn các phương án (lý do pre-mortem, quyết định v1 và v2, ngày xét lại, PIC) và tự commit, push; các con số trong phiếu lấy từ report của `lab10`.
+
+### Bằng chứng
+
+- **Mã commit:** `f026576` (CP1), `36466ce` (ký tiêu chí), `07c51df` (Phiếu A), `9b94892` (chốt cổng vòng 1 và quyết định v1), `4c76fc2` (nhận thẻ S8), `08aea20` (CP4: cổng và chỉ số cho S8, Phiếu C), `089952a` (bài nộp).
+- **Mã lần chạy (`runs/`):** vòng 1: `R-base-before-20261119-161858-b45eeb`, `R-base-after-20261119-162207-2d2862`, `R-base-after-20261119-162207-a3a0ab`, `R-base-after-20261119-162207-5f6460`, `R-base-prepared-20261119-163940-9e91bf`. Vòng 2: `R-S8-before-20261119-171557-9e91bf` (base), `R-S8-prepared-20261119-171557-9e91bf` (prepared), `R-S8-after-20261119-173724-96566d` (after), grade `R-S8-grade-20261119-173723-96566d`.
+- **Dòng trong phiếu:** Phiếu B mục B0, B2, B7.1, B7.2, B7.3, B8; Phiếu C mục C0, C1, C2, C6, C7 (cột chỗ sửa), C8 (kể cả mục bonus), C9.
+
+### Exit ticket
+
+- **Điều học được:** Cổng phải dựa vào nguồn sự thật (DB, chính sách theo ngày hiệu lực, sổ cái), không dựa vào chữ khách hay một mã "có sẵn". Và số 100% pass chưa chắc là hết lỗi: `claim_over_db_rate` vẫn 0,0455 sau khi có cổng, tức lỗi gốc còn đó, cổng chỉ che.
+- **Điều còn chưa chắc:** Cổng trần khách mỗi ngày dùng sổ cái không phân ngày nên có thể chặn dư, và khách dùng nhiều tài khoản vẫn lọt. Bàn chưa chạy được bài kiểm tra ẩn (đơn, khách, cách viết mới) nên chưa biết các cổng có tổng quát hay chỉ vừa với bộ nhìn thấy.
 
 ## NguyenVanQuoc-2A202603864
 
@@ -50,24 +83,6 @@ Mỗi thành viên tự viết một mục bên dưới (chép mẫu, đổi ti�
 
 - **Điều học được:** Phải viết và khóa Bản tiêu chí (`acceptance_criteria.json`, `decision_rule`) **trước** khi xem kết quả chạy thử, đồng thời gắn chặt các ngưỡng kinh doanh (`daily_refund_cap_vnd`, `cost_per_ticket_vnd_max`, `roi_min`) với dữ liệu vận hành thực tế (`ops_facts`, `ops_limits`) và chi phí nhân sự trực duyệt.
 - **Điều còn chưa chắc:** Khi nhận thẻ sự cố `Sx` ở Vòng 2 (hoặc khi `REFUND-v4` có hiệu lực từ `2026-12-01`), ngưỡng `escalation_rate_max` (`0.28`) và phạm vi `pilot_scope` 100% ở cả 2 depot có còn giữ được chi phí mỗi ticket ≤ 7.000đ và `queue_stuck_max = 0` hay sẽ cần thu hẹp phạm vi.
-
-## HoVaTen-MSSV
-
-### Phần việc phụ trách
-
-Vai trong bàn; câu nào của đề, mục nào của phiếu A/B/C, file nào (`lab10/guards.py`, `config/operating_gates.json`, …).
-
-### Đóng góp cụ thể
-
-...
-
-### Bằng chứng
-
-Mã commit, mã lần chạy (`runs/<mã>`), dòng trong phiếu.
-
-### Exit ticket
-
-Một điều học được, một điều còn chưa chắc.
 
 ## LaQuocNghi-2A202603947
 

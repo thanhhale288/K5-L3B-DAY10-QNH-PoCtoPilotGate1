@@ -1,8 +1,8 @@
 {
- "run_id": "R-S8-grade-20261119-173135-be2fa1",
+ "run_id": "R-S8-grade-20261119-173723-96566d",
  "incident": "S8",
  "grader_version": "lab10-1.0",
- "code_hash": "be2fa1f13095215d1ddf8cb4b05e404af1f13d94716da481bd97aa9f28e59c96",
+ "code_hash": "96566db2b602b1bac2f26cfd9fcaf0408c293506e04a5478e2bb37f7d0c160fa",
  "integrity": {
   "ok": true,
   "changed": [],
@@ -139,7 +139,9 @@
    "monitors": {
     "escalation_rate": 0.227273,
     "customer_daily_auto_refund_max_vnd": 155000.0,
-    "invalid_approval_rate": 0.0
+    "invalid_approval_rate": 0.0,
+    "claim_over_db_rate": 0.045455,
+    "claim_db_mismatch_rate": 0.009091
    },
    "by_segment": {
     "warehouse": [
@@ -394,7 +396,9 @@
    "monitors": {
     "escalation_rate": 0.0,
     "customer_daily_auto_refund_max_vnd": 498000.0,
-    "invalid_approval_rate": 0.0
+    "invalid_approval_rate": 0.0,
+    "claim_over_db_rate": 0.0,
+    "claim_db_mismatch_rate": 0.0
    },
    "by_segment": {
     "warehouse": [
@@ -591,7 +595,9 @@
    "monitors": {
     "escalation_rate": 0.236364,
     "customer_daily_auto_refund_max_vnd": 155000.0,
-    "invalid_approval_rate": 0.0
+    "invalid_approval_rate": 0.0,
+    "claim_over_db_rate": 0.045455,
+    "claim_db_mismatch_rate": 0.009091
    },
    "by_segment": {
     "warehouse": [
@@ -809,7 +815,9 @@
    "monitors": {
     "escalation_rate": 0.096154,
     "customer_daily_auto_refund_max_vnd": 498000.0,
-    "invalid_approval_rate": 0.0
+    "invalid_approval_rate": 0.0,
+    "claim_over_db_rate": 0.0,
+    "claim_db_mismatch_rate": 0.0
    },
    "by_segment": {
     "warehouse": [
@@ -1006,7 +1014,9 @@
    "monitors": {
     "escalation_rate": 0.236364,
     "customer_daily_auto_refund_max_vnd": 155000.0,
-    "invalid_approval_rate": 0.0
+    "invalid_approval_rate": 0.0,
+    "claim_over_db_rate": 0.045455,
+    "claim_db_mismatch_rate": 0.009091
    },
    "by_segment": {
     "warehouse": [
@@ -1213,7 +1223,9 @@
    "monitors": {
     "escalation_rate": 0.134615,
     "customer_daily_auto_refund_max_vnd": 282000.0,
-    "invalid_approval_rate": 0.096154
+    "invalid_approval_rate": 0.096154,
+    "claim_over_db_rate": 0.0,
+    "claim_db_mismatch_rate": 0.0
    },
    "by_segment": {
     "warehouse": [
@@ -1331,9 +1343,9 @@
   }
  },
  "run_ids": {
-  "before": "R-S8-before-20261119-173136-be2fa1",
-  "prepared": "R-S8-prepared-20261119-173136-be2fa1",
-  "after": "R-S8-after-20261119-173136-be2fa1"
+  "before": "R-S8-before-20261119-173724-96566d",
+  "prepared": "R-S8-prepared-20261119-173724-96566d",
+  "after": "R-S8-after-20261119-173724-96566d"
  },
  "visible": {
   "before_red": true,
@@ -1356,7 +1368,9 @@
   "ok": true,
   "new": [
    "customer_daily_auto_refund_max_vnd",
-   "invalid_approval_rate"
+   "invalid_approval_rate",
+   "claim_over_db_rate",
+   "claim_db_mismatch_rate"
   ],
   "lit": [
    {
@@ -1376,6 +1390,30 @@
     "stage": "after",
     "base": 0.0,
     "incident": 0.096154
+   },
+   {
+    "name": "claim_over_db_rate",
+    "stage": "before",
+    "base": 0.045455,
+    "incident": 0.0
+   },
+   {
+    "name": "claim_over_db_rate",
+    "stage": "after",
+    "base": 0.045455,
+    "incident": 0.0
+   },
+   {
+    "name": "claim_db_mismatch_rate",
+    "stage": "before",
+    "base": 0.009091,
+    "incident": 0.0
+   },
+   {
+    "name": "claim_db_mismatch_rate",
+    "stage": "after",
+    "base": 0.009091,
+    "incident": 0.0
    }
   ],
   "errors": []
@@ -1404,5 +1442,5 @@
  "hard_gates_ok": true,
  "score": null,
  "verdict": "PASS-VISIBLE (chưa chạy test ẩn)",
- "seconds": 1.056
+ "seconds": 1.295
 }
